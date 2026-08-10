@@ -38,11 +38,14 @@ CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> is a Transformer-based sys
 </div>
 
 ## About this repository
-> This repository reproduces the results of the CrystaLLM-&pi; paper,
-> ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299).
-> `main` reproduces the published (v2) results; branch
-> [`paper_v1`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/paper_v1) preserves the pre-revision (v1) workflow.
-> The maintained, up-to-date package lives at [C-Bone-UCL/CrystaLLM-pi](https://github.com/C-Bone-UCL/CrystaLLM-pi).
+
+This repository reproduces the results of the CrystaLLM-pi paper: ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299). `main` reproduces the published (v2) results, and the [`paper_v1`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/paper_v1) branch is the workflow from before the reviewer  (v1 of paper on Arxiv).
+
+The maintained framework lives at [C-Bone-UCL/CrystaLLM-pi](https://github.com/C-Bone-UCL/CrystaLLM-pi), use that one for anything except reproducing the paper. What is different here:
+
+- **Frozen at the paper state.** The main repo has post-paper generation and validation updates that this repo deliberately excludes: redundant transition-score removal during perplexity ranking, extra validity checks, full-batch perplexity scoring before slicing to `target_valid_cifs`, and stricter formula-consistency handling. 
+- **Reproduction code only.** The containerised API, Docker/Apptainer builds etc are not here.
+- **Dont contribute here.** Open issues and PRs on the main repo.
 
 
 ## Key Features
@@ -175,19 +178,6 @@ Prepends learned embeddings (soft prompts) to the input sequence. These prefix t
 Baseline approach where numerical condition values are converted to text and appended to input prompts. Requires no architectural changes but increases sequence length. Implemented for comparison but generally less performant.
 
 </details>
-
-<br>
-<br>
-
-# LeMaterial Benchmark
-
-CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> was evaluated on [LeMaterial GenBench](https://huggingface.co/spaces/LeMaterial/LeMat-GenBench); the paper's LeMat-Benchmark appendix compares it against the other benchmarked generative models on MP-20 and Alex-MP-20 (headline numbers quoted in the Results section). The generation protocol used for the submissions is in [`A_Text_baseline.ipynb`](notebooks/A_Text_baseline.ipynb); scoring runs on the external LeMat-GenBench harness. (Leaderboard snapshot: top-5 on the default MSUN+SUN ranking, January 2026.)
-
-### Key Takeaways
-
-* **High-Fidelity Interpolation**: The model is in the top performers at generating structures that are closer to their relaxed equilibrium state than continuous generative models. (Relaxation RMSD)
-* **Structural Diversity**: While the model replicates the training distribution with high precision (see distribution metrics), it maintains high element diversity - likely due to the large training set.
-* **Tuning Exploration**: Lower novelty is a byproduct of high-fidelity distribution matching. To move away from the base distribution, users can increase the `temperature` parameter at inference or explore property conditioned options (like the SLME study)
 
 <br>
 <br>
@@ -515,13 +505,13 @@ XRD, bandgap or density property metrics, VUN, and stability metrics are availab
 
 # Paper Studies
 
-The notebooks in [`notebooks/`](notebooks/) reproduce the studies in the paper end to end. Prefixes: `A_`/`B*` = baselines and property-conditioning studies, `X_` = full discovery/recovery pipelines, `Y_` = analyses and ablations. Figure/table numbers below follow the current arXiv version. Steps needing large external compute (pre-training, MatterGen training, DFT, LeMat-GenBench scoring) are marked inside the notebooks; the paper's framework schematics are hand-drawn and have no notebook source.
+The notebooks in [`notebooks/`](notebooks/) reproduce the studies in the paper end to end. Figure/table numbers below follow the v3 arXiv version. Steps that need large external compute (pre-training, MatterGen training, DFT, LeMat-GenBench scoring) are marked inside the notebooks, the paper's framework schematics are hand-drawn and have no notebook source.
 
 | Notebook | Study | Reproduces |
 |---|---|---|
 | [`A_Text_baseline.ipynb`](notebooks/A_Text_baseline.ipynb) | Unconditional text baselines (mp-20, alex-mp-20, LeMaterial) and LeMat-bench generation | Results headline numbers + LeMat-Benchmark appendix table (scoring via external LeMat-GenBench harness) |
 | [`B1a_Pretrain_benefits.ipynb`](notebooks/B1a_Pretrain_benefits.ipynb) | Pretraining benefits for bandgap + E_hull conditional generation | Fig 3, Figs 13-14, Table VII |
-| [`B1b_Mattergen.ipynb`](notebooks/B1b_Mattergen.ipynb) | Head-to-head comparison against MatterGen | Figs 15-17, MatterGen row of Table VII, Table IX provenance note |
+| [`B1b_Mattergen.ipynb`](notebooks/B1b_Mattergen.ipynb) | Head-to-head comparison against MatterGen | Figs 15-17, MatterGen row of Table VII, Table IX|
 | [`B2_Dataset_size_study.ipynb`](notebooks/B2_Dataset_size_study.ipynb) | Dataset-size study on density-conditioned generation | Fig 4, Fig 12, Table VIII |
 | [`X_SLME.ipynb`](notebooks/X_SLME.ipynb) | Discovery pipeline for target photovoltaic efficiency (SLME) | Fig 5, Table I, Table XVI |
 | [`X_XRD_chili100k.ipynb`](notebooks/X_XRD_chili100k.ipynb) | CHILI-100K XRD structure recovery | Fig 6 |
