@@ -11,7 +11,6 @@ from tests.local.group_sections.data_utils import DataUtilsTests
 from tests.local.group_sections.notebook_utils import NotebookUtilsTests
 from tests.local.group_sections.integration import IntegrationTests
 from tests.local.group_sections.load_and_generate import LoadAndGenerateTests
-from tests.local.group_sections.virtualiser import VirtualiserTests
 
 __all__ = [
     "DataProcessingTests",
@@ -27,5 +26,4 @@ __all__ = [
     "NotebookUtilsTests",
     "IntegrationTests",
     "LoadAndGenerateTests",
-    "VirtualiserTests",
 ]
