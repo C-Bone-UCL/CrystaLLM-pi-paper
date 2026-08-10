@@ -12,6 +12,7 @@ omegaconf==2.3.0
 pyyaml==6.0.2
 smact==3.0.1
 matminer==0.9.3
+codecarbon==2.8.2
 commentjson==0.9.0
 jarvis-tools==2024.10.30
 brokenaxes==0.6.2
