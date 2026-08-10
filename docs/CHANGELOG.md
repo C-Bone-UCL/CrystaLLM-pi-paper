@@ -28,7 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Notebook Utils Reorganization**: Split `_utils/_notebook_utils.py` into the `_utils/_notebook_utils/` package, with notebook-specific modules and shared utilities.
 - **Code Cleanup**: Removed dead code left behind by retired workflows.
-- **Maintained Workflow**: Updated tests, API parity, API documentation, and coverage for the maintained generation, preprocessing, and metrics workflows.
+- **Maintained Workflow**: Updated tests and coverage for the maintained generation, preprocessing, and metrics workflows.
 - **Project Metadata**: Added `CODE_OF_CONDUCT.md` and `CONTRIBUTING.md`, refreshed GitHub workflows, and introduced a new `pyproject.toml`.
 
 ### Reproducibility and Branching
@@ -41,7 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Features and Enhancements
 
-- **Virtual Crystal Generator**: For disordered material (partial occupancy) generation support. Added `_utils/_virtualiser/` subpackage implementing the `crystal_virtualiser` tool (developed by [Dr Ricardo Grau-Crespo](https://github.com/rgraucrespo)). Post-generation utility that converts ordered CIF structures from the model into disordered virtual crystals with promoted symmetry. Element pairs are replaced with fractional occupancies matching the global composition ratio, and the structure is refined to its higher-symmetry parent using spglib via pymatgen. Included passing tests, API endpoints, README update with examples.
+- **Virtual Crystal Generator**: disordered-material (partial occupancy) generation support was introduced here as `_utils/_virtualiser/` (developed by [Dr Ricardo Grau-Crespo](https://github.com/rgraucrespo)). This post-paper utility now lives in the maintained [CrystaLLM-pi](https://github.com/C-Bone-UCL/CrystaLLM-pi) repository and is not part of this reproduction repo.
 
 ### Efficiency improvements & Dependency Changes
 - **In Generation Script**: Fixed redundant transition scoring calls in generate with perplexity ranking, improves generation speed without affecting any outputs or score outputs (backwards compatible)
@@ -53,7 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Features and Enhancements
 
-- **New Conditional Model Integration**: Added support for the Mattergen-XRD model. Updated API test suites for endpoint compatibility.
+- **New Conditional Model Integration**: Added support for the Mattergen-XRD model.
 - **Reduced Formula Search (`_load_and_generate.py`)**: New `--search_zs` flag sweeps Z=1–4 automatically. With perplexity ranking it evaluates all Z values and returns the lowest-perplexity outputs.  Without ranking it exits early on the first valid CIF. Z can also be set directly if known. Amount of CIFs returned per prompt is controlled by `--target_valid_cifs`.
 - **Improved Perplexity Ranking**: Batch processing now scores the full batch before slicing to `target_valid_cifs`, ensuring the best structures are returned rather than just the first valid ones.
 - **Multi-GPU Generation**: Added multi-GPU support to `_load_and_generate.py`.
@@ -65,13 +65,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Repo Structure and Testing
 
-- **Docker Changes**: Consolidated configs into `docker/`, added code-reload development mode, standardised setup commands via Makefile.
-- **Apptainer Support**: Added targets for HPC / no-Docker environments. All tests pass in both Apptainer and Docker images.
-- **Refactored API Endpoints and Test Suites**: Test suites and API route handlers are now split into logical directories per functionality rather than one large file.
-
-### New Notebook
-
-- New example notebook `notebooks/Z_API_density.ipynb` showing an end-to-end API use case: predicting density (via structure prediction) for given compositions and optionally associated XRDs, example use case on a subset of MP-20 as well as manual prompt creation.
+- Docker/Apptainer containerisation and the REST API introduced in this release now live in the maintained [CrystaLLM-pi](https://github.com/C-Bone-UCL/CrystaLLM-pi) repository and are not part of this reproduction repo.
 ---
 
 ## [v1.0.0] - 2025-11-01

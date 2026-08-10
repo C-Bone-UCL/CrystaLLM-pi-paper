@@ -37,10 +37,6 @@ To ensure stability and reproducibility, this project relies on a three-tier tes
 * **Trigger:** Triggered manually via GitHub Actions (`workflow_dispatch`) by repository maintainers.
 * **Description:** Exercises code paths requiring external APIs (e.g., Hugging Face, Weights & Biases). If the required API keys (`HF_KEY`, `WANDB_KEY`) are present in the repository secrets, the full suite runs. If not, it falls back to the offline suite.
 
-### Tier 3: Manual Docker API & Integration Tests
-* **Trigger:** Triggered manually via GitHub Actions (`workflow_dispatch`).
-* **Description:** Builds the Docker container and runs API smoke tests to verify the deployment environment. An optional flag can be set during dispatch to run the slower, full integration suite. Note: This runs on standard GitHub-hosted runners (CPU), while production deployments would need GPU environments.
-
 ## Governance and Support
 
 CrystaLLM-pi is primarily developed and maintained by Cyprien Bone (PhD Student @ UCL). 

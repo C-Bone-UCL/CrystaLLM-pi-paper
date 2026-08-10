@@ -21,7 +21,7 @@
 <a href="https://www.nature.com/articles/s41467-024-54639-7">
     <img alt="Based on CrystaLLM Paper" src="https://img.shields.io/badge/Based%20on-CrystaLLM%20Paper-orange.svg?style=plastic">
 </a>
-<a href="https://github.com/C-Bone-UCL/CrystaLLM-pi/blob/main/LICENSE">
+<a href="https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/blob/main/LICENSE">
     <img alt="License" src="https://img.shields.io/badge/License-MIT-lightgrey.svg?style=plastic">
 </a>
 
@@ -37,10 +37,12 @@ CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> is a Transformer-based sys
 <img src="images/Framework_github.png" width="75%" style="background-color:white;"/>
 </div>
 
-## Reproducing the paper
-For the version of the repository that was used in the ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299) paper, please refer to the v1.0.0 tag of this repository or the [reproduce-paper branch](https://github.com/C-Bone-UCL/CrystaLLM-pi/tree/reproduce_paper).
-
-This is because the repository is an ongoing project and improvements are continuously being implemented!
+## About this repository
+> This repository reproduces the results of the CrystaLLM-&pi; paper,
+> ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299).
+> `main` reproduces the published (v2) results; branch
+> [`paper_v1`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/paper_v1) preserves the pre-revision (v1) workflow.
+> The maintained, up-to-date package lives at [C-Bone-UCL/CrystaLLM-pi](https://github.com/C-Bone-UCL/CrystaLLM-pi).
 
 
 ## Key Features
@@ -56,11 +58,9 @@ This is because the repository is an ongoing project and improvements are contin
 
 - [Installation](#installation)
 - [Model Types](#model-types)
-- [Quick Start](#quick-start)
+- [LeMaterial Benchmark](#lematerial-benchmark)
 - [Training, Generating & Evaluating from Scratch](#training-generating--evaluating-from-scratch)
-- [API](#api)
-- [Apptainer (Production Build)](#apptainer-production-build)
-- [Studies](#studies)
+- [Paper Studies](#paper-studies)
 - [License](#license)
 - [Contact](#contact)
 
@@ -110,9 +110,9 @@ pip install git+https://github.com/KellerJordan/Muon
 pip install -r requirements-alignn.txt
 ```
 
-### API Keys Configuration
+### HuggingFace & Weights & Biases credentials
 
-Create `API_keys.jsonc` in the root directory for HuggingFace and Weights & Biases integration:
+Create `API_keys.jsonc` in the root directory for HuggingFace and Weights & Biases integration (used by training, dataset upload, and prompt-making scripts):
 
 ```jsonc
 // filepath: API_keys.jsonc
@@ -181,7 +181,7 @@ Baseline approach where numerical condition values are converted to text and app
 
 # LeMaterial Benchmark
 
-CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> was evaluated on the [LeMaterial GenBench](https://huggingface.co/spaces/LeMaterial/LeMat-GenBench) ranked in the top-5 models on the default MSUN+SUN (January 2026).
+CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> was evaluated on [LeMaterial GenBench](https://huggingface.co/spaces/LeMaterial/LeMat-GenBench); the paper's LeMat-Benchmark appendix compares it against the other benchmarked generative models on MP-20 and Alex-MP-20 (headline numbers quoted in the Results section). The generation protocol used for the submissions is in [`A_Text_baseline.ipynb`](notebooks/A_Text_baseline.ipynb); scoring runs on the external LeMat-GenBench harness. (Leaderboard snapshot: top-5 on the default MSUN+SUN ranking, January 2026.)
 
 ### Key Takeaways
 
@@ -190,243 +190,6 @@ CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> was evaluated on the [LeMa
 * **Tuning Exploration**: Lower novelty is a byproduct of high-fidelity distribution matching. To move away from the base distribution, users can increase the `temperature` parameter at inference or explore property conditioned options (like the SLME study)
 
 <br>
-<br>
-
-# Quick Start
-
-Use with pre-trained models from HuggingFace Hub for direct crystal structure generation. The `_load_and_generate.py` script handles downloading models and generating valid CIF structures with desired properties.
-
-## How It Works
-
-The script automatically:
-
-1. **Downloads models** from HuggingFace Hub (cached locally after first use).
-2. **Normalizes property values** - provide standard unit values (e.g., bandgap in eV, density in g/cm³).
-3. **Creates prompts** at different detail levels using explicitly mapped Z-values or automated Z-searches.
-4. **Generates structures** using the appropriate conditional model architecture (automatically inferred).
-5. **Validates & Ranks** outputs based on structural integrity and optional LogP perplexity scoring.
-
-Each model can be used by providing a list of reduced formulas (`--reduced_formula_list`) paired with either explicit stoichiometric scaling factors (`--z_list`) or an automated discovery sweep (`--search_zs`). The Hub-hosted Slider model (`Mattergen-XRD`) supports direct peak conditioning via `--xrd_files`, and can also run without `--xrd_files` by using missing conditioning values. The maintained second-pass experimental XRD workflow now lives in [`notebooks/X_XRD_chili100k.ipynb`](notebooks/X_XRD_chili100k.ipynb) using the Chili configs under [`_config_files/training/conditional/xrd_studies/`](_config_files/training/conditional/xrd_studies) and [`_config_files/generation/conditional/xrd_studies/`](_config_files/generation/conditional/xrd_studies).
-
-## Available Pre-trained Models
-
-* `c-bone/CrystaLLM-pi_base`: Unconditional generation (Base model)
-* `c-bone/CrystaLLM-pi_alex_mp_20_base`: Unconditional generation (trained on alex-mp-20)
-* `c-bone/CrystaLLM-pi_mp_20_base`: Unconditional generation (trained on mp-20)
-* `c-bone/CrystaLLM-pi_SLME`: Solar efficiency conditioning (0-33% range) (PKV model)
-* `c-bone/CrystaLLM-pi_bandgap`: Bandgap + stability conditioning (0-18 eV, 0-5 eV/atom) (PKV model)
-* `c-bone/CrystaLLM-pi_density`: Density + stability conditioning (0-25 g/cm³, 0-0.1 eV/atom) (PKV model)
-* `c-bone/CrystaLLM-pi_Mattergen-XRD`: XRD pattern conditioning (Theoretical patterns, fully ordered bias) (Slider model)
-* `c-bone/CrystaLLM-pi_Chili100K-XRD`: XRD pattern conditioning (Theoretical patterns, fully ordered bias) (Slider model)
-
-<br>
-
-> For true XRD conditioning, provide **pre-picked peak data** (not raw continuous diffraction profiles) in `.csv`, `.xy`, `.txt`, or `.dat` formats via `--xrd_files`. Many open-source programs do this (e.g., [fityk](https://fityk.nieto.pl/) for academic use). This is because different XRD profiles can require different processing parameters, so automating this step is quite difficult.
-> 
-> The internal preprocessing engine will automatically convert your picked peaks to the expected CuKa wavelength (if you provide your instrument's primary radiation wavelength via `--xrd_wavelength`), filter valid ranges, normalize intensities, and select the top peaks for model conditioning.
->
-> If there are redundant peaks due to additional radiation sources, these need to be removed as well (eg. if sample irradiated with K-alpha1 and K-alpha2, remove K-alpha2 peaks)
->
-> If `--xrd_files` is omitted for a Slider model, generation still runs with missing conditioning values
-
-## Generation Examples
-
-Expand below for a list of how you can generate with the models using the script
-
-<details>
-<summary>Examples</summary>
-
-<br>
-
-> **Note**: Properties (Conditions, Spacegroups, XRD files, Z values) map strictly 1:1 to the canonicalized reduced formulas provided in `--reduced_formula_list`.
-> 
-> **Outputs**: Outputs can either be saved as a dataframe in a `.parquet` using the `--output_parquet` flag, or as individual CIFs in a directory using the `--output_cif_dir` flag.
-
-**Explicit Z Generation (Unconditional)**
-
-Generate 10 (2 batches of 5) Ti2O4 structures by explicitly setting the reduced formula and Z=2, including a spacegroup constraint.
-
-```bash
-python _load_and_generate.py \
-    --hf_model_path "c-bone/CrystaLLM-pi_base" \
-    --reduced_formula_list "TiO2" \
-    --z_list "2" \
-    --spacegroups "P4_2/mnm" \
-    --level level_4 \
-    --num_return_sequences 5 \
-    --max_return_attempts 2 \
-    --output_parquet generated_structures.parquet
-```
-
-**Mapped Lists (Bandgap Conditioning)**
-
-Provide parallel lists to generate multiple specific structures at once. Each condition vector (bandgap, E_hull) directly corresponds to the respective formula.
-
-```bash
-# Maps: (TiO2, Z=2, bg=1.8, E_hull=0.0) and (SiO2, Z=4, bg=5.0, E_hull=0.0)
-python _load_and_generate.py \
-    --hf_model_path "c-bone/CrystaLLM-pi_bandgap" \
-    --reduced_formula_list "TiO2,SiO2" \
-    --z_list "2,4" \
-    --condition_lists "1.8,0.0" "5.0,0.0" \
-    --level level_3 \
-    --num_return_sequences 5 \
-    --output_parquet semiconductors.parquet
-```
-
-**Early-Stopping Z-Search (Density Conditioning)**
-
-Automatically search from Z=1 to Z=4 to find valid structures. Because `scoring_mode` is None, the worker stops the search and return a structure once it satisfies the `--target_valid_cifs`.
-
-```bash
-python _load_and_generate.py \
-    --hf_model_path "c-bone/CrystaLLM-pi_density" \
-    --reduced_formula_list "SiO2" \
-    --search_zs \
-    --condition_lists "2.143,0.0" \
-    --level level_2 \
-    --num_return_sequences 5 \
-    --target_valid_cifs 1 \
-    --output_parquet fast_discovery.parquet
-```
-
-**Ranked Z-Search (LOGP)**
-
-Search across all Z values (1 through 4), generate batches for all of them, and then rank the valid outputs using LOGP perplexity to find the most theoretically stable structures.
-
-```bash
-python _load_and_generate.py \
-  --hf_model_path "c-bone/CrystaLLM-pi_base" \
-  --reduced_formula_list "SiO2,TiO2" \
-  --search_zs \
-  --scoring_mode "LOGP" \
-  --target_valid_cifs 3 \
-  --num_return_sequences 10 \
-  --output_parquet reduced_formula_best.parquet
-```
-
-**Solar Efficiency (Level 1)**
-
-Unconditionally generate with a high photovoltaic efficiency.
-
-```bash
-python _load_and_generate.py \
-    --hf_model_path "c-bone/CrystaLLM-pi_SLME" \
-    --condition_lists "25.0" \
-    --level level_1 \
-    --num_return_sequences 5 \
-    --target_valid_cifs 0 \
-    --output_parquet solar_screening.parquet
-```
-
-**XRD Conditioned Output (Pre-processed Peaks)**
-
-Generate from pre-processed XRD patterns. Mapped 1:1 with the requested formula.
-
-```bash
-python _load_and_generate.py \
-  --hf_model_path "c-bone/CrystaLLM-pi_Mattergen-XRD" \
-    --reduced_formula_list "TiO2" \
-    --z_list "2" \
-    --xrd_files "tests/fixtures/test_rutile_processed.csv" \
-    --num_return_sequences 5 \
-    --output_cif_dir xrd_2_struct/
-```
-
-**Raw XRD Conditioned Output (with Wavelength Conversion)**
-
-Provide peaks from a different radiation source (e.g., MoKa at 0.71073 Å). The pipeline automatically converts patterns to expected format.
-
-```bash
-python _load_and_generate.py \
-    --hf_model_path "c-bone/CrystaLLM-pi_Chili100K-XRD" \
-    --reduced_formula_list "TiO2" \
-    --search_zs \
-    --xrd_files "tests/fixtures/test_rutile_raw.xy" \
-    --xrd_wavelength 0.71073 \
-    --scoring_mode "LOGP" \
-    --target_valid_cifs 3 \
-    --num_return_sequences 5 \
-    --output_cif_dir xrd_2_struct/
-```
-
-**Slider with No XRD Inputs**
-
-Run a Slider model without providing `--xrd_files`. This uses missing conditioning values and seems to work better than the base model for conditionless generation.
-
-```bash
-python _load_and_generate.py \
-    --hf_model_path "c-bone/CrystaLLM-pi_Mattergen-XRD" \
-    --reduced_formula_list "NaCl" \
-    --search_zs \
-    --num_return_sequences 5 \
-    --max_return_attempts 1 \
-    --target_valid_cifs 1 \
-    --scoring_mode "logp" \
-    --output_cif_dir xrd_2_struct/
-```
-
-## Configuration Options
-
-**Prompt levels `--level`:**
-
-* `level_1`: Minimal (unconditional/property only generation)
-* `level_2`: Composition only (default)
-* `level_3`: Composition + atomic properties
-* `level_4`: Composition + spacegroup
-
-**Stoichiometry Control:**
-
-* `--z_list "X,Y"`: Provide a comma-separated list of exact stoichiometric multipliers mapping 1:1 to your reduced formulas.
-* `--search_zs`: Trigger an automated sweep from Z=1 to Z=4 for each formula.
-* *Tip:* Combine `--search_zs` with `--target_valid_cifs X` and it will loop through Z until it finds a valid CIF. If on top of that you add the logp perplexity scoring, itll generate for each Z. For all the Zs with a valid CIFs, it will return the models single most confident prediction for the reduced formula.
-
-**Perplexity Scoring (LogP)**
-
-* For each generation which passes basic chemical validity checks, we compute transition scores for the token sequence to the perplexity score. Lower perplexity values indicate higher model confidence in the generated sequence according to its learned probability distribution. [See Blog Post for more info](https://apxml.com/courses/how-to-build-a-large-language-model/chapter-21-intrinsic-evaluation-metrics/interpreting-perplexity-scores)
-
-</details>
-
-<br>
-
-# Virtual Crystal Generation (Post-processing)
-
-After generating ordered CIF structures, you can convert them to **disordered virtual crystals** using the [`crystal_virtualiser`](_utils/_virtualiser/crystal_virtualiser.py) utility. This replaces specified element pairs with fractional occupancies at shared sites and promotes the structure to its higher-symmetry parent with spglib. Useful for comparing against experimental diffraction data or estimating a disordered structure candidate.
-
-<details>
-<summary>Example Usage and Config</summary>
-
-**Config file (YAML):**
-
-```yaml
-symprec: 0.003
-angle_tolerance: 0.5
-virtual_pairs:
-  - [Mg, Zn]
-```
-
-**Example:**
-
-```bash
-# Generate an ordered structure
-python _load_and_generate.py \
-    --hf_model_path "c-bone/CrystaLLM-pi_base" \
-    --reduced_formula_list "Mg3ZnO4" \
-    --z_list "1" \
-    --num_return_sequences 10 \
-    --scoring_mode "LOGP" \
-    --target_valid_cifs 1 \
-    --output_cif_dir outputs/
-
-# Virtualise the result
-python _utils/_virtualiser/crystal_virtualiser.py \
-    --in outputs/Mg3ZnO4.cif \
-    --config config.yaml \
-    --out outputs/Mg3ZnO4_virtual.cif
-```
-
-</details>
-
 <br>
 
 # Training, Generating & Evaluating from Scratch
@@ -750,324 +513,25 @@ XRD, bandgap or density property metrics, VUN, and stability metrics are availab
 
 > **Note**: ALIGNN-based scripts require the separate `alignn_env` environment.
 
-# API
-
-Containerized API provides REST endpoints for preprocessing, training, generation, and metrics.
-
-Current API parity notes:
-
-- `/generate/direct` accepts exactly one output target: `output_parquet` or `output_cif_dir`.
-- `/preprocessing/clean` exposes `property3_normaliser`, `filter_to`, and `count_tokens`.
-- Metrics routes include `/metrics/vun`, `/metrics/ehull`, `/metrics/xrd`, and `/metrics/property`.
-
-First-time host setup (Linux + NVIDIA GPU required):
-
-```bash
-# Install NVIDIA Container Toolkit (Ubuntu/Debian)
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
-    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-
-sudo apt-get update
-sudo apt-get install -y nvidia-container-toolkit
-sudo systemctl restart docker
-
-# Quick sanity checks
-docker --version
-docker compose version
-nvidia-smi
-# Verify Docker can access your GPUs
-# If successful, this will download a test image and print nvidia-smi table
-docker run --rm --gpus all nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
-
-# Optional: run Docker without sudo, but you need to re-login or reboot for membership to apply
-sudo usermod -aG docker $USER
-```
-
-Setup (first time bringing container up, if requirements.txt or dockerfile or system dependencies are changed):
-
-```bash
-# Make the env file
-
-## In command line
-### Copy the template to your local, git-ignored .env file (only edit the .env)
-cp docker/.env.example docker/.env
-
-### inject your current host machine's UID and GID into the .env file
-sed -i "s/^UID=.*/UID=$(id -u)/" docker/.env
-sed -i "s/^GID=.*/GID=$(id -g)/" docker/.env
-
-## In the .env file
-### pick GPUs exposed to the API container
-### default in template is 0,1 (can do that or all)
-NVIDIA_VISIBLE_DEVICES=0,1
-DOCKER_GPUS=all
-
-### your API keys to the .env
-HF_KEY=your_hf_token_here
-WANDB_KEY=your_wandb_key_here
-
-# back in Command line
-## make dirs needed for the api
-mkdir -p data outputs
-
-## OR Dev Mode
-### If Docker still requires sudo:
-sudo --preserve-env=HF_KEY,WANDB_KEY,UID,GID make api-up-dev-build
-### else
-make api-up-dev-build
-
-## Production mode
-make api-up-build
-```
-
-### Usage Modes (CLI)
-
-| Command | Mode | Description |
-| --- | --- | --- |
-| `make api-up-dev` | **Dev** | Uses `uvicorn --reload`. Restarts on file changes. Best for rapid development. |
-| `make api-up` | **Prod** | No auto-reload. More stable. Recommended for long-running generation jobs. |
-
-```bash
-# Start the API
-make api-up-dev # Development mode
-# OR
-make api-up # Production mode
-
-# Utilities
-make api-health # Check server status (wait a couple mins before this will work)
-make api-logs # Follow logs
-make api-down # Stop and cleanup
-```
-
-### Running Tests
-
-Ensure your API container is running, then run the test suites to verify the pipeline.
-
-```bash
-# Fast Routing Tests (Checks if endpoints respond, 10 secs)
-make api-test
-
-# Full Integration Tests (Runs generation & metrics end-to-end, ~10 mins)
-make api-test-with-integration
-
-# For Local Unit Tests activate environment
-conda activate CrystaLLM-pi_env
-# Then run tests (1 min)
-python -m tests.local.suite --cpu
-```
-
-### Quickstart Generation Examples
-
-See the examples below.
-
-For `/generate/direct`, provide exactly one of `output_parquet` or `output_cif_dir`.
-
-<details>
-<summary>Expand for comprehensive API generation examples (curl)</summary>
-
-### Direct generation (Explicit Z, Spacegroup targeting)
-
-```bash
-curl -X POST "http://localhost:8000/generate/direct" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "hf_model_path": "c-bone/CrystaLLM-pi_base",
-    "reduced_formula_list": "TiO2",
-    "z_list": "2",
-    "spacegroups": "P4_2/mnm",
-    "level": "level_4",
-    "num_return_sequences": 5,
-    "max_return_attempts": 2,
-    "output_parquet": "/app/outputs/test_generated_structures.parquet"
-  }'
-```
-
-### Direct generation (SLME, level_1 so no composition provided)
-
-```bash
-curl -X POST "http://localhost:8000/generate/direct" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "hf_model_path": "c-bone/CrystaLLM-pi_SLME",
-    "condition_lists": ["25.0"],
-    "level": "level_1",
-    "num_return_sequences": 5,
-    "output_parquet": "/app/outputs/solar_screening.parquet"
-  }'
-```
-
-### Direct generation (Mattergen-XRD, Early-Stopping Z-Search with Spacegroup)
-
-```bash
-curl -X POST "http://localhost:8000/generate/direct" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "hf_model_path": "c-bone/CrystaLLM-pi_Mattergen-XRD",
-    "reduced_formula_list": "TiO2",
-    "spacegroups": "P4_2/mnm",
-    "level": "level_4",
-    "search_zs": true,
-    "xrd_files": ["/app/tests/fixtures/test_rutile_processed.csv"],
-    "num_return_sequences": 5,
-    "max_return_attempts": 2,
-    "target_valid_cifs": 1,
-    "scoring_mode": "none",
-    "output_parquet": "/app/outputs/xrd_mattergen_early_stop.parquet"
-  }'
-```
-
-### Direct generation (Chili100K-XRD, LOGP Ranked Z-Search with Raw Wavelength Conversion)
-
-```bash
-curl -X POST "http://localhost:8000/generate/direct" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "hf_model_path": "c-bone/CrystaLLM-pi_Chili100K-XRD",
-    "reduced_formula_list": "TiO2",
-    "search_zs": true,
-    "xrd_files": ["/app/tests/fixtures/test_rutile_raw.xy"],
-    "xrd_wavelength": 0.71073,
-    "num_return_sequences": 10,
-    "max_return_attempts": 2,
-    "target_valid_cifs": 5,
-    "scoring_mode": "LOGP",
-    "temperature": 1.0,
-    "output_cif_dir": "/app/outputs/xrd_chili_logp"
-  }'
-```
-
-### Direct generation (Mattergen-XRD without xrd_files)
-
-```bash
-curl -X POST "http://localhost:8000/generate/direct" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "hf_model_path": "c-bone/CrystaLLM-pi_Mattergen-XRD",
-    "reduced_formula_list": "NaCl",
-    "search_zs": true,
-    "num_return_sequences": 5,
-    "max_return_attempts": 1,
-    "target_valid_cifs": 1,
-    "scoring_mode": "logp",
-    "output_parquet": "/app/outputs/mattergen_no_xrd.parquet"
-  }'
-```
-
-### Virtualise a generated CIF (inline element pairs)
-
-Convert an ordered CIF to a disordered virtual crystal using inline matching pairs arrays:
-
-```bash
-curl -X POST "http://localhost:8000/virtualise" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input_cif": "/app/outputs/Mg3ZnO4.cif",
-    "output_cif": "/app/outputs/Mg3ZnO4_virtual.cif",
-    "virtual_pairs": [["Mg", "Zn"]],
-    "symprec": 0.003,
-    "angle_tolerance": 0.5
-  }'
-```
-
-### Virtualise a generated CIF (YAML config file)
-
-Alternatively, supply a YAML config file:
-
-```bash
-curl -X POST "http://localhost:8000/virtualise" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input_cif": "/app/outputs/FeSbO4_ordered.cif",
-    "output_cif": "/app/outputs/FeSbO4_virtual.cif",
-    "config_file": "/app/data/virtualiser_config.yaml"
-  }'
-```
-
-</details>
-
-### API Training GPU Selection
-
-* You can force behavior in requests for training:
-* `"multi_gpu": false` forces single-process launch
-* `"multi_gpu": true` requests torchrun (only used when 2+ GPUs are visible)
-* `"nproc_per_node": N` caps torchrun workers when multi-GPU is active
-
-* For generate, all available GPUs are used
-
-### Troubleshooting
-
-* **API Permission Denied**: Run `chmod 644 API_keys.jsonc` and `chmod -R 775 outputs data`.
-* **Cache Failures**: Ensure `outputs/` and `data/` are owned by the current user: `sudo chown -R $USER:$USER outputs data`.
-* **Logs**: Job and test logs are stored in `outputs/api_job_logs/` and `outputs/api_test_logs/`.
-* **Docs:** Visit `http://localhost:8000/docs` in browser to view the interactive API schema and execute endpoints directly. (needs to be on, or linked to machine where API is running)
-
-### Cancel a job or check status
-
-To cancel a running job:
-
-```bash
-curl -X POST "http://localhost:8000/jobs/<job-id>/cancel"
-```
-
-To check status of a current job:
-
-```bash
-curl "http://localhost:8000/jobs/<job-id>"
-```
-
-# Apptainer (Production Build)
-
-Use this when you want the API packaged as a portable `.sif` (e.g. for HPC / no-Docker environments).
-
-### 1) Build the production Docker image
-
-```bash
-# Builds the docker image so we can make a .sif file from it, this command doesnt boot up the container.
-make api-build
-```
-
-### 2) Build Apptainer image from Docker daemon (latest tag)
-
-```bash
-# this compresses to about 8GB and took me 15 min to build
-make api-apptainer-build
-```
-
-### 3) Run the API from Apptainer (GPU + mounted data/output)
-
-> Apptainer does not read `.env` automatically, so we export the two API keys:
-
-```bash
-# If you ran make api-up-build, the container may be up and running
-# Run this command to shut it down to clear up the :8000 port for apptainer image
-make api-down
-
-# Export the keys Apptainer needs
-set -a; source <(grep -E '^(HF_KEY|WANDB_KEY)=' docker/.env); set +a
-
-# warning about api_keys.jsonc is harmless here
-make api-apptainer-run
-```
-
-Leave this terminal open. Health checks, tests, and curl commands are identical to the Docker flow (see `Running Tests`).
-
-#### You can also override names/tags:
-
-```bash
-make api-apptainer-build APPTAINER_SIF=my-api.sif APPTAINER_DOCKER_IMAGE=crystallm-api APPTAINER_DOCKER_SOURCE_TAG=local APPTAINER_DOCKER_TAG=latest
-```
-
 # Paper Studies
 
-Experimental notebooks as seen in the paper for end-to-end pipelines are available in [`notebooks/`](https://github.com/C-Bone-UCL/CrystaLLM-pi/tree/reproduce_paper/notebooks) with files starting with `X_`.
+The notebooks in [`notebooks/`](notebooks/) reproduce the studies in the paper end to end. Prefixes: `A_`/`B*` = baselines and property-conditioning studies, `X_` = full discovery/recovery pipelines, `Y_` = analyses and ablations. Figure/table numbers below follow the current arXiv version. Steps needing large external compute (pre-training, MatterGen training, DFT, LeMat-GenBench scoring) are marked inside the notebooks; the paper's framework schematics are hand-drawn and have no notebook source.
 
-Key examples:
-
-* **mp-20 notebook**: Pipeline for structure recovery given desired theoretical XRD
-* **SLME notebook**: Pipeline for discovery of a material with a desired photovoltaic
+| Notebook | Study | Reproduces |
+|---|---|---|
+| [`A_Text_baseline.ipynb`](notebooks/A_Text_baseline.ipynb) | Unconditional text baselines (mp-20, alex-mp-20, LeMaterial) and LeMat-bench generation | Results headline numbers + LeMat-Benchmark appendix table (scoring via external LeMat-GenBench harness) |
+| [`B1a_Pretrain_benefits.ipynb`](notebooks/B1a_Pretrain_benefits.ipynb) | Pretraining benefits for bandgap + E_hull conditional generation | Fig 3, Figs 13-14, Table VII |
+| [`B1b_Mattergen.ipynb`](notebooks/B1b_Mattergen.ipynb) | Head-to-head comparison against MatterGen | Figs 15-17, MatterGen row of Table VII, Table IX provenance note |
+| [`B2_Dataset_size_study.ipynb`](notebooks/B2_Dataset_size_study.ipynb) | Dataset-size study on density-conditioned generation | Fig 4, Fig 12, Table VIII |
+| [`X_SLME.ipynb`](notebooks/X_SLME.ipynb) | Discovery pipeline for target photovoltaic efficiency (SLME) | Fig 5, Table I, Table XVI |
+| [`X_XRD_chili100k.ipynb`](notebooks/X_XRD_chili100k.ipynb) | CHILI-100K XRD structure recovery | Fig 6 |
+| [`X_XRD_jarvis.ipynb`](notebooks/X_XRD_jarvis.ipynb) | Jarvis-DFT XRD structure recovery | Table III, Table XII |
+| [`X_XRD_mp-20.ipynb`](notebooks/X_XRD_mp-20.ipynb) | MP-20 theoretical-XRD structure recovery | Table II |
+| [`X_XRD_TiO2.ipynb`](notebooks/X_XRD_TiO2.ipynb) | TiO2 polymorph recovery from experimental XRD (drives generation via [`_load_and_generate.py`](_load_and_generate.py)) | Table IV |
+| [`Y_Dataset_stats.ipynb`](notebooks/Y_Dataset_stats.ipynb) | Dataset token/atom statistics | Table V, Fig 7 |
+| [`Y_Logits.ipynb`](notebooks/Y_Logits.ipynb) | Digit-level logit analysis | Fig 9 |
+| [`Y_Losses.ipynb`](notebooks/Y_Losses.ipynb) | Loss landscapes (paper appendices) | Figs 18-19 |
+| [`Y_mp-20-xrd-ablations.ipynb`](notebooks/Y_mp-20-xrd-ablations.ipynb) | XRD-conditioning and perplexity-ranking ablations | Tables X-XI |
 
 # Tokenizer
 
