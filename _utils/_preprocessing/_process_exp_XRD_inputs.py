@@ -70,7 +70,9 @@ def process_and_save(angles, intensities):
         warnings.warn("No valid peaks found in the 0-90 degree range.")
         return np.array([]), np.array([])
 
-    sort_idx = np.argsort(intensities)[::-1]
+    # Tie-break on angle: the condition vector pairs thetas to intensities by position,
+    # so tied peaks reordering silently changes the model input.
+    sort_idx = np.lexsort((angles, -intensities))
     angles = angles[sort_idx][:MAX_PEAKS]
     intensities = intensities[sort_idx][:MAX_PEAKS]
     

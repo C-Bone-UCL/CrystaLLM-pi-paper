@@ -39,14 +39,12 @@ CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> is a Transformer-based sys
 
 ## About this repository
 
-This repository reproduces the results of the CrystaLLM-pi paper: ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299). `main` reproduces the published (v2) results, and the [`paper_v1`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/paper_v1) branch is the workflow from before the reviewer  (v1 of paper on Arxiv).
+This repository reproduces the results of the CrystaLLM-pi paper: ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299). `main` reproduces the published (v2/v3 on Arxiv) results, and the [`paper_v1`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/paper_v1) branch is the workflow from before the reviewer  (v1 of paper on Arxiv).
 
 The maintained framework lives at [C-Bone-UCL/CrystaLLM-pi](https://github.com/C-Bone-UCL/CrystaLLM-pi), use that one for anything except reproducing the paper. What is different here:
 
-- **Frozen at the paper state.** The main repo has post-paper generation and validation updates that this repo deliberately excludes: redundant transition-score removal during perplexity ranking, extra validity checks, full-batch perplexity scoring before slicing to `target_valid_cifs`, and stricter formula-consistency handling. 
-- **Reproduction code only.** The containerised API, Docker/Apptainer builds etc are not here.
-- **Dont contribute here.** Open issues and PRs on the main repo.
-
+- **Frozen at the paper state.** The main repo has post-paper generation and validation updates that this repo doesnt: extra validity checks when doing perplexity ranked candidate picking and stricter formula-consistency handling, along with some code efficiency changes. 
+- **Reproduction code only.** No API, Docker/Apptainer.
 
 ## Key Features
 
@@ -61,9 +59,10 @@ The maintained framework lives at [C-Bone-UCL/CrystaLLM-pi](https://github.com/C
 
 - [Installation](#installation)
 - [Model Types](#model-types)
-- [LeMaterial Benchmark](#lematerial-benchmark)
 - [Training, Generating & Evaluating from Scratch](#training-generating--evaluating-from-scratch)
 - [Paper Studies](#paper-studies)
+- [Tokenizer](#tokenizer)
+- [Citation](#citation)
 - [License](#license)
 - [Contact](#contact)
 
@@ -84,8 +83,8 @@ The maintained framework lives at [C-Bone-UCL/CrystaLLM-pi](https://github.com/C
 
 ```bash
 # Clone the repository
-git clone https://github.com/C-Bone-UCL/CrystaLLM-pi.git
-cd CrystaLLM-pi
+git clone https://github.com/C-Bone-UCL/CrystaLLM-pi-paper.git
+cd CrystaLLM-pi-paper
 
 # Create virtual environment
 conda create -n CrystaLLM-pi_env python=3.10
@@ -132,7 +131,7 @@ Create `API_keys.jsonc` in the root directory for HuggingFace and Weights & Bias
 
 CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> supports one unconditional and four conditional model architectures, allowing for both standard and property-driven generation. The desired model can be selected during training using the `--activate_conditionality` flag.
 
-> **Important:** In the paper, the `PKV` method is addressed as the `Prefix attention`, and `Slider` is called the `Residual attention`. For all intents and purposes, these are the exact same. However the codebase was developed with `PKV` and `Slider`, but their respective names were changed in the paper for technical clarity.
+> **Important:** In the paper, the `PKV` method is addressed as the `Prefix attention`, and `Slider` is called the `Residual attention`. For all intents and purposes, these are the exact same. However the codebase was developed with `PKV` and `Slider`, but their respective names were changed in the paper for technical clarity. In the main repository, the current maintianed models have now swtiched to their correct `Prefix` and `Residual` names, even though some legacy models with the old names can still be used.
 
 ### 1. Unconditional CrystaLLM
 
@@ -186,7 +185,7 @@ Baseline approach where numerical condition values are converted to text and app
 
 Complete pipeline for training your own models from data preprocessing to evaluation. All training and generation parameters and options are defined in [`_args.py`](_args.py). Training & generating should be done via configuration files (`.jsonc` format) which specify all necessary parameters.
 
-> Maintained notebook workflow: [`notebooks/X_XRD_chili100k.ipynb`](notebooks/X_XRD_chili100k.ipynb) covers CHILI-100K preprocessing, second-pass Slider finetuning, conditioned generation, unconditional control runs, and aggregate metrics.
+> Full detailed worfklow notebook: [`notebooks/X_XRD_chili100k.ipynb`](notebooks/X_XRD_chili100k.ipynb) covers CHILI-100K preprocessing, second-pass Slider finetuning, conditioned generation, unconditional control runs, and aggregate metrics.
 
 ## Data Processing Pipeline
 
@@ -304,7 +303,7 @@ python _utils/_preprocessing/_save_dataset_to_HF.py \
 
 All training should be done via configuration files (`.jsonc` format). These files specify model architecture, hyperparameters, data paths, and training settings. See example configs in `_config_files/training/` and review [`_args.py`](_args.py). for all available parameters.
 
-> The `Muon` optimiser is now available for training, see [this blog post](https://kellerjordan.github.io/posts/muon/) for details. Importantly, you cannot use deepspeed when using muon. Simply do not feed a deepspeed configuration file and it will work fine (multi-GPU training still supported). Muon speeds up and stabilises training without any performance trade-offs (did some internal checks).
+> The `Muon` optimiser is now available for training, see [this blog post](https://kellerjordan.github.io/posts/muon/) for details. Importantly, you cannot use deepspeed when using muon. Simply do not feed a deepspeed configuration file and it will work fine (multi-GPU training still supported). Muon speeds up and stabilises training without any performance trade-offs (did some internal checks). I use muon for all my training now. 
 
 <details>
 <summary>Base model training CLI example</summary>
@@ -510,7 +509,7 @@ The notebooks in [`notebooks/`](notebooks/) reproduce the studies in the paper e
 | Notebook | Study |
 |---|---|
 | [`A_Text_baseline.ipynb`](notebooks/A_Text_baseline.ipynb) | Unconditional text baselines (mp-20, alex-mp-20, LeMaterial) and LeMat-bench generation | 
-| [`B1a_Pretrain_benefits.ipynb`](notebooks/B1a_Pretrain_benefits.ipynb) | 
+| [`B1a_Pretrain_benefits.ipynb`](notebooks/B1a_Pretrain_benefits.ipynb) | Pretraining benefit: finetuned-from-pretrained vs from-scratch, across all four conditional methods (bandgap + E_hull on MP) |
 | [`B1b_Mattergen.ipynb`](notebooks/B1b_Mattergen.ipynb) | Head-to-head comparison against MatterGen | 
 | [`B2_Dataset_size_study.ipynb`](notebooks/B2_Dataset_size_study.ipynb) | Dataset-size study on density-conditioned generation |
 | [`X_SLME.ipynb`](notebooks/X_SLME.ipynb) | Discovery pipeline for target photovoltaic efficiency (SLME) |
@@ -554,7 +553,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 # Contact
 
-For questions or support, please contact cyprien.bone.24@ucl.ac.uk or raise an issue on the GitHub page.
+For questions or support, please contact cyprien.bone.24@ucl.ac.uk. 
 
 # Acknowledgments
 This work has been supported by UKRI funding (EP/Y000552/1 and EP/Y014405/1)
