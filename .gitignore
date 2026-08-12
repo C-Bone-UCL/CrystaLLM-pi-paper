@@ -34,3 +34,6 @@ fontlist*.json
 .docs/
 .pytest_cache/
 emissions.csv
+*.egg-info/
+build/
+dist/

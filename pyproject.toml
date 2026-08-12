@@ -3,8 +3,8 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "crystallm-pi"
-version = "1.3.0"
+name = "crystallm-pi-paper"
+version = "2.0.0"
 description = "Reproduction code for CrystaLLM-pi (arXiv:2511.21299), a Transformer-based model for property-guided crystal structure generation"
 readme = "README.md"
 license = { file = "LICENSE" }
