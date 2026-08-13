@@ -217,7 +217,7 @@ Input data should be a pandas DataFrame saved as Parquet file. To train a model 
 
 ```bash
 python _utils/_preprocessing/_deduplicate.py \
-  --input_file /path/to/raw_data.parquet \
+  --input_parquet /path/to/raw_data.parquet \
   --output_parquet /path/to/deduplicated_data.parquet \
   --property_columns "['Bandgap (eV)', 'Density (g/cm^3)']" \
   --filter_na_columns "['Bandgap (eV)']" \
@@ -410,7 +410,7 @@ Each quoted string is a **complete condition vector** (comma-separated property 
 
 ```bash
 python _utils/_generating/generate_CIFs.py \
-  --config _config_files/generation/pkv_generation.jsonc
+  --config _config_files/generation/conditional/slme/slme-PKV-opt_eval.jsonc
 ```
 
 > You can generate with arguments from the CLI, but it's easier to use the config file. You can find a lot of examples in [`_config_files/generation`](_config_files/generation)
@@ -480,7 +480,7 @@ We can optionally set the `--check_comp_novelty` flag, which adds an `is_comp_no
 
 **Script:** `_utils/_metrics/mace_ehull.py` - Calculate thermodynamic stability using MACE energy predictions. See the [MACE paper](https://arxiv.org/abs/2206.07697) for details on the surrogate model.
 
-> To calculate E_hull First, total energies are computed using the MACE-MP default calculator, predicted energies are then processed using the *MaterialsProject2020Compatibility* scheme to ensure consistency between GGA and GGA+U calculations. The surrogate energy predictions are compared to formation energies of known materials from the MP dataset and used to construct a convex hull. The energy above the convex hull (E_hull) quantifies thermodynamic stability by comparing a material’s formation energy to competing phases.
+> To calculate E_hull First, total energies are computed using the MACE-MP default calculator, predicted energies are then processed using the *MaterialsProject2020Compatibility* scheme to ensure consistency between GGA and GGA+U calculations. The surrogate energy predictions are compared to formation energies of known materials from the MP dataset and used to construct a convex hull. The energy above the convex hull (E_hull) quantifies thermodynamic stability by comparing a material's formation energy to competing phases.
 
 <details>
 <summary>Example Usage and Args</summary>
