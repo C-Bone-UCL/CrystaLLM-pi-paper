@@ -536,10 +536,10 @@ Please refer to the following when citing our work!
 ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299)
 
 ```
-@misc{bone2025discoveryrecoverycrystallinematerials,
+@misc{bone2026discoveryrecoverycrystallinematerials,
       title={Discovery and recovery of crystalline materials with property-conditioned transformers}, 
-      author={Cyprien Bone and Matthew Walker and Kuangdai Leng and Luis M. Antunes and Ricardo Grau-Crespo and Amil Aligayev and Javier Dominguez and Keith T. Butler},
-      year={2025},
+      author={Cyprien Bone and Matthew Walker and Bradley A. A. Martin and Kuangdai Leng and Luis M. Antunes and Ricardo Grau-Crespo and Amil Aligayev and Javier Dominguez and Keith T. Butler},
+      year={2026},
       eprint={2511.21299},
       archivePrefix={arXiv},
       primaryClass={cond-mat.mtrl-sci},
