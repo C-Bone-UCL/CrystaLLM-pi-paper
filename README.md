@@ -532,8 +532,7 @@ The `HF-cif-tokenizer` already contains everything you need to train/run models 
 
 # Citation
 
-Please refer to the following when citing our work!
-["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299)
+Please refer to the following when citing our work! ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299)
 
 ```
 @misc{bone2026discoveryrecoverycrystallinematerials,
