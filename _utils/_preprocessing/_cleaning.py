@@ -8,6 +8,7 @@ normalizing property columns, and adding atomic properties blocks.
 import argparse
 import ast
 import os
+import re
 import warnings
 import multiprocessing as mp
 import pandas as pd
@@ -32,6 +33,14 @@ warnings.filterwarnings("ignore")
 CHUNK_SIZE = 1000
 DECIMAL_PLACES = 4
 OXI_DEFAULT = False  # Default value for oxidation states if not provided
+# Atom-site row whose occupancy is the bare integer 1: symbol, label, multiplicity, x, y, z, occupancy
+FULL_OCCUPANCY = re.compile(r"^(\s*\S+\s+\S+\s+\d+\s+-?\d+\.\d+\s+-?\d+\.\d+\s+-?\d+\.\d+\s+)1$", re.M)
+
+
+def float_occupancies(cif_str):
+    """Write full occupancies as `1.0`, the form pymatgen gives any structure parsed from a CIF."""
+    return FULL_OCCUPANCY.sub(r"\g<1>1.0", cif_str)
+
 
 def progress_listener(progress_queue, total):
     pbar = tqdm(total=total)
@@ -63,6 +72,7 @@ def augment_cif_chunk(chunk, oxi, progress_queue):
             cif_str = semisymmetrize_cif(cif_str)
             cif_str = add_atomic_props_block(cif_str, oxi)
             cif_str = round_numbers(cif_str, decimal_places=DECIMAL_PLACES)
+            cif_str = float_occupancies(cif_str)
             cif_str = remove_comments(cif_str)
             cif_str = add_variable_brackets_to_cif(cif_str)
             results.append((idx, cif_str))
