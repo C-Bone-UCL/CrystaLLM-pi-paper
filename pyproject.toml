@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crystallm-pi-paper"
-version = "2.0.0"
+version = "3.0.0"
 description = "Reproduction code for CrystaLLM-pi (arXiv:2511.21299), a Transformer-based model for property-guided crystal structure generation"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -26,9 +26,5 @@ py-modules = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-# "tests" is deliberately not shipped. Installing it would claim the top-level name in the
-# user's site-packages, where mace-torch, pybtex, dtw-python and crystal-toolkit also install
-# a package called tests and the last one installed wins. The suite runs from a clone
-# instead, so nothing needs it on the install path.
 include = ["_models*", "_utils*"]
 

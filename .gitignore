@@ -37,3 +37,4 @@ emissions.csv
 *.egg-info/
 build/
 dist/
+.tmp/

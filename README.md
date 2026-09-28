@@ -39,7 +39,7 @@ CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> is a Transformer-based sys
 
 ## About this repository
 
-This repository reproduces the results of the CrystaLLM-pi paper: ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299). `main` reproduces the published (v2/v3 on Arxiv) results, and the [`paper_v1`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/paper_v1) branch is the workflow from before the reviewer  (v1 of paper on Arxiv).
+This repository reproduces the results of the CrystaLLM-pi paper: ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299). `main` reproduces the results reported in arXiv v4, and the `v2.0.0` tag reproduces those reported in arXiv v2/v3. The [`paper_v1`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/paper_v1) branch preserves the workflow used for arXiv v1, before peer review.
 
 The maintained framework lives at [C-Bone-UCL/CrystaLLM-pi](https://github.com/C-Bone-UCL/CrystaLLM-pi), use that one for anything except reproducing the paper. What is different here:
 
@@ -504,7 +504,7 @@ XRD, bandgap or density property metrics, VUN, and stability metrics are availab
 
 # Paper Studies
 
-The notebooks in [`notebooks/`](notebooks/) reproduce the studies in the paper end to end. Figure/table numbers below follow the v3 arXiv version. Steps that need large external compute (pre-training, MatterGen training, DFT, LeMat-GenBench scoring) are marked inside the notebooks, the paper's framework schematics are hand-drawn and have no notebook source.
+The notebooks in [`notebooks/`](notebooks/) reproduce the studies in the paper end to end. Steps that need large external compute (pre-training, MatterGen training, DFT, LeMat-GenBench scoring) are marked inside the notebooks, the paper's framework schematics are hand-drawn and have no notebook source.
 
 | Notebook | Study |
 |---|---|
@@ -513,14 +513,14 @@ The notebooks in [`notebooks/`](notebooks/) reproduce the studies in the paper e
 | [`B1b_Mattergen.ipynb`](notebooks/B1b_Mattergen.ipynb) | Head-to-head comparison against MatterGen | 
 | [`B2_Dataset_size_study.ipynb`](notebooks/B2_Dataset_size_study.ipynb) | Dataset-size study on density-conditioned generation |
 | [`X_SLME.ipynb`](notebooks/X_SLME.ipynb) | Discovery pipeline for target photovoltaic efficiency (SLME) |
-| [`X_XRD_chili100k.ipynb`](notebooks/X_XRD_chili100k.ipynb) | CHILI-100K XRD structure recovery |
+| [`X_XRD_chili100k.ipynb`](notebooks/X_XRD_chili100k.ipynb) | CHILI-100K XRD structure recovery and sampling scheme comparison, including generation times |
 | [`X_XRD_jarvis.ipynb`](notebooks/X_XRD_jarvis.ipynb) | Jarvis-DFT XRD structure recovery |
 | [`X_XRD_mp-20.ipynb`](notebooks/X_XRD_mp-20.ipynb) | MP-20 theoretical-XRD structure recovery | 
 | [`X_XRD_TiO2.ipynb`](notebooks/X_XRD_TiO2.ipynb) | TiO2 polymorph recovery from experimental XRD (drives generation via [`_load_and_generate.py`](_load_and_generate.py)) |
 | [`Y_Dataset_stats.ipynb`](notebooks/Y_Dataset_stats.ipynb) | Dataset token/atom statistics |
 | [`Y_Logits.ipynb`](notebooks/Y_Logits.ipynb) | Digit-level logit analysis |
 | [`Y_Losses.ipynb`](notebooks/Y_Losses.ipynb) | Loss landscapes (paper appendices) |
-| [`Y_mp-20-xrd-ablations.ipynb`](notebooks/Y_mp-20-xrd-ablations.ipynb) | XRD-conditioning and perplexity-ranking ablations |
+| [`Y_mp-20-xrd-ablations.ipynb`](notebooks/Y_mp-20-xrd-ablations.ipynb) | XRD conditioning and perplexity ranking ablations, including generation times |
 
 # Tokenizer
 

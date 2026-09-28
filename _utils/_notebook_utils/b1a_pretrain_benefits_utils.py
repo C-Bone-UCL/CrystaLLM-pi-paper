@@ -685,10 +685,115 @@ def plot_bandgap_output_space_summary(
     return fig
 
 
+def plot_bandgap_output_space_per_target(
+    df_dict,
+    targets,
+    train_df=None,
+    train_bg_col="Bandgap (eV)",
+    target_bg_col="target_Bandgap (eV)",
+    pred_bg_col="ALIGNN_bg (eV)",
+    max_bg=8.5, bin_width=0.25, row_height=3.4, width=22.5,
+    title_fontsize=22, label_fontsize=20, ticks_fontsize=18,
+    axes_linewidth=2.0, num_yticks=4, first_panel_letter="a",
+):
+    """
+    Each row shows generations for one target band gap, with Scratch and Pre-trained models in
+    separate columns. All rows share the x-axis scale, while each row uses its own y-axis scale,
+    shared across both columns.
+    """
+    bins = np.arange(0, max_bg + bin_width, bin_width)
+    bin_centers = bins[:-1] + bin_width / 2
+    xs, dens_norm = get_training_density(train_df, train_bg_col, max_val=max_bg)
+
+    panel_order = {
+        p: [m for m in ["PKV", "Slider", "Prepend", "Raw"] if any(get_model_and_pretrain_status(lbl) == (m, p) for lbl in df_dict)]
+        for p in (False, True)
+    }
+
+    n_rows = len(targets)
+    fig = plt.figure(figsize=(width, row_height * n_rows + 1.6), constrained_layout=True)
+    grid = fig.add_gridspec(n_rows + 1, 2, height_ratios=[1.0] * n_rows + [1.6 / row_height])
+    letters = string.ascii_lowercase[string.ascii_lowercase.index(first_panel_letter):]
+
+    for row, target in enumerate(targets):
+        axes = [fig.add_subplot(grid[row, 0]), fig.add_subplot(grid[row, 1])]
+        axes[1].sharey(axes[0])
+        y_max = 0.0
+
+        for label, data_frame in df_dict.items():
+            method, is_pretrained = get_model_and_pretrain_status(label)
+            methods_in_panel = panel_order[is_pretrained]
+            sub = data_frame[np.isclose(pd.to_numeric(data_frame[target_bg_col], errors="coerce"), target)]
+            valid_mask, vsun_mask = calculate_vsun_masks(sub)
+            pred = sub[pred_bg_col]
+
+            v_plot = _count_series_per_bin(pred, valid_mask, bins)
+            q_plot = np.minimum(_count_series_per_bin(pred, vsun_mask, bins), v_plot)
+            n_out = int((valid_mask & (pd.to_numeric(pred, errors="coerce") >= max_bg)).sum())
+            if n_out:
+                print(f"{label} @ {target:.2f} eV: {n_out} valid generations beyond {max_bg} eV not shown")
+
+            bar_w = bin_width / len(methods_in_panel)
+            offset = (methods_in_panel.index(method) - (len(methods_in_panel) - 1) / 2.0) * bar_w
+            color = OKABE_ITO_PRETRAIN[method]
+            ax = axes[1 if is_pretrained else 0]
+            ax.bar(bin_centers + offset, q_plot, width=bar_w, color=color, alpha=0.95, ec=color, lw=axes_linewidth * 0.4, zorder=3)
+            ax.bar(bin_centers + offset, v_plot - q_plot, bottom=q_plot, width=bar_w, color=color, alpha=0.28, ec=color, lw=axes_linewidth * 0.4, zorder=3)
+            y_max = max(y_max, float(v_plot.max()))
+
+        for col, ax in enumerate(axes):
+            if dens_norm is not None:
+                den_ax = ax.twinx()
+                den_ax.fill_between(xs, dens_norm, color="#888888", alpha=0.22, zorder=0)
+                den_ax.set_ylim(0, 1)
+                den_ax.axis("off")
+                ax.patch.set_visible(False)
+
+            ax.set_xlim(0, max_bg)
+            ax.set_ylim(0, max(1.0, y_max * 1.12))
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=num_yticks, integer=True, min_n_ticks=3))
+            ax.tick_params(axis="both", which="major", labelsize=ticks_fontsize)
+            ax.axvline(target, color="#000000", ls="--", lw=1.5, zorder=4)
+            for side in ("top", "right"):
+                ax.spines[side].set_visible(False)
+            ax.spines["bottom"].set_linewidth(axes_linewidth)
+            ax.spines["left"].set_linewidth(axes_linewidth)
+            ax.text(target + 0.012 * max_bg, 0.97, f"{target:.2f} eV", transform=ax.get_xaxis_transform(), fontsize=ticks_fontsize, ha="left", va="top")
+            ax.text(-0.0, 1.04, f"({letters[2 * row + col]})", transform=ax.transAxes, fontsize=title_fontsize, weight="bold", ha="right")
+
+            if row == 0:
+                ax.set_title(COL_TITLES[col], fontsize=title_fontsize)
+            if row == n_rows - 1:
+                ax.set_xlabel("Generated band-gap [eV]", fontsize=label_fontsize)
+            else:
+                ax.tick_params(axis="x", labelbottom=False)
+            if col == 1:
+                ax.tick_params(axis="y", labelleft=False)
+
+    fig.supylabel("Structurally valid generations [count]", fontsize=label_fontsize)
+
+    legend_ax = fig.add_subplot(grid[n_rows, :])
+    legend_ax.axis("off")
+    m_handles = [Patch(fc=OKABE_ITO_PRETRAIN[m], ec=OKABE_ITO_PRETRAIN[m], alpha=0.9) for m in ("PKV", "Slider", "Prepend", "Raw")]
+    m_leg = legend_ax.legend(m_handles, ["Prefix", "Residual", "Prepend", "Raw"], title="Model", loc="center left", bbox_to_anchor=(0.0, 0.5), frameon=False, fontsize=ticks_fontsize, ncol=4)
+    m_leg.get_title().set_fontproperties({"size": title_fontsize, "weight": "bold"})
+    legend_ax.add_artist(m_leg)
+    e_handles = [Patch(fc="#990099", ec="#990099", alpha=0.95), Patch(fc="#CF81CF", ec="#CF81CF", alpha=0.95)]
+    e_leg = legend_ax.legend(e_handles, ["$\\mathregular{Q_{VSUN}}$", "Valid"], title="Bar", loc="center", bbox_to_anchor=(0.53, 0.5), frameon=False, fontsize=ticks_fontsize, ncol=2)
+    e_leg.get_title().set_fontproperties({"size": title_fontsize, "weight": "bold"})
+    legend_ax.add_artist(e_leg)
+    r_handles = [Patch(fc="#888888", alpha=0.22, ec="none"), Line2D([], [], color="#000000", ls="--", lw=1.0)]
+    r_leg = legend_ax.legend(r_handles, ["Training-set density", "Requested target"], title="Reference", loc="center right", bbox_to_anchor=(1.0, 0.5), frameon=False, fontsize=ticks_fontsize, ncol=2)
+    r_leg.get_title().set_fontproperties({"size": title_fontsize, "weight": "bold"})
+
+    return fig
+
+
 __all__ = [
     "get_metrics_ptnd_vs_scratch", 
     "plot_pretraining_benefits", 
     "plot_vsun_parity_grid_bandgap", 
     "format_bandgap_metrics_table", 
-    "plot_bandgap_output_space_summary"
+    "plot_bandgap_output_space_summary",
+    "plot_bandgap_output_space_per_target"
 ]
