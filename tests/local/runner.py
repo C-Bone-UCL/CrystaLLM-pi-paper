@@ -104,7 +104,7 @@ def main():
         integration_tests = IntegrationTests(suite.temp_dir, test_data)
         
         # Execute tests
-        print("Running CrystaLLM-pi Comprehensive Test Suite...")
+        print("Running CrystaLLM-pi Test Suite...")
         print("-" * 50)
         
         # Core component tests

@@ -321,7 +321,7 @@ def attach_prompt_metadata(df_prompts: pd.DataFrame, specs: List[dict]) -> pd.Da
         raise ValueError(f"Prompt/spec mismatch: got {len(df_prompts)} prompts but {len(specs_df)} specs")
     
     out = df_prompts.copy().reset_index(drop=True)
-    # The fix + robust `.get` assignment
+    # Copy spec columns onto the prompts. Missing columns become None.
     for col in ["reduced_formula_target", "Z_search", "prompt_order", "Material ID", "condition_vector"]:
         if col in specs_df.columns:
             out[col] = specs_df[col].values

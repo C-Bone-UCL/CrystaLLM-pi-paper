@@ -291,7 +291,7 @@ def get_novelty(df_gen, base_comps, ltol, stol, angle_tol, structures, workers):
     tasks = []
     for idx, row in df_to_check.iterrows():
         struct = structures[df_gen.index.get_loc(idx)]
-        # Normalize composition key for robust matching
+        # Match on reduced formula
         if struct:
             try:
                 comp_key = Composition(struct.composition).reduced_formula
@@ -388,7 +388,7 @@ def get_comp_novelty(df_gen, base_comps, structures):
             is_comp_novel_list.append(False)
             continue
         
-        # Normalize composition key for robust matching
+        # Match on reduced formula
         try:
             comp_key = Composition(struct.composition).reduced_formula
         except Exception:

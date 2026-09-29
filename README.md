@@ -39,21 +39,20 @@ CrystaLLM-<span style="font-size: 1.2em;">&pi;</span> is a Transformer-based sys
 
 ## About this repository
 
-This repository reproduces the results of the CrystaLLM-pi paper: ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299). `main` reproduces the results reported in arXiv v4, and the `v2.0.0` tag reproduces those reported in arXiv v2/v3. The [`paper_v1`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/paper_v1) branch preserves the workflow used for arXiv v1, before peer review.
+This repository reproduces the results of the CrystaLLM-pi paper: ["Discovery and recovery of crystalline materials with property-conditioned transformers"](https://arxiv.org/pdf/2511.21299). Each arXiv version has a tag with the code that produced its results, and `main` follows the latest version.
 
-The maintained framework lives at [C-Bone-UCL/CrystaLLM-pi](https://github.com/C-Bone-UCL/CrystaLLM-pi), use that one for anything except reproducing the paper. What is different here:
+<div align="center">
 
-- **Frozen at the paper state.** The main repo has post-paper generation and validation updates that this repo doesnt: extra validity checks when doing perplexity ranked candidate picking and stricter formula-consistency handling, along with some code efficiency changes. 
-- **Reproduction code only.** No API, Docker/Apptainer.
+| arXiv version | Tag |
+|:---:|:---:|
+| v1 (pre peer review) | [`v1.0.0`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/v1.0.0) |
+| v2 and v3 | [`v2.0.0`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/v2.0.0) |
+| v4 | [`v3.0.0`](https://github.com/C-Bone-UCL/CrystaLLM-pi-paper/tree/v3.0.0) |
 
-## Key Features
+</div>
 
-- **Unconditional Generation**: Generate crystal structures from structural/composition priors
-- **Property-Guided Generation**: Generate crystal structures conditioned on target properties + structural priors
-- **Multiple Architectures**: Choose from 4 different conditional methods plus unconditional base model
-- **Flexible Conditioning**: You can use any set of numerical properties to condition, and one of the models handles heterogeneous datasets (some properties are missing in the dataset but not others...)
-- **Evaluation of output structures**: Scripts for validity, uniqueness, novelty and stability metrics
-- **HuggingFace Integration**: Pre-trained models available on HF Hub
+
+The maintained framework lives at [C-Bone-UCL/CrystaLLM-pi](https://github.com/C-Bone-UCL/CrystaLLM-pi), use that one for anything except reproducing the paper. Here, the **code is frozen to match the paper and theres none of the API, docker/apptainer, documentation.**
 
 ## Table of Contents
 
@@ -100,7 +99,7 @@ pip install git+https://github.com/KellerJordan/Muon
 pip install -e .
 ```
 
-### Optional: ALIGNN Environment Setup
+### ALIGNN Environment Setup for bandgap preds
 
 For property prediction (bandgap), set up a separate environment to avoid dependency conflicts:
 
@@ -160,6 +159,8 @@ Novel architecture where conditioning information is dynamically injected into e
 <div align="center">
 <img src="images/Residual_github.png" width="75%" style="background-color:white;"/>
 </div>
+
+<br>
 
 <details>
 <summary>Prepend and Raw model details (comparative baselines used in paper)</summary>
@@ -508,9 +509,9 @@ The notebooks in [`notebooks/`](notebooks/) reproduce the studies in the paper e
 
 | Notebook | Study |
 |---|---|
-| [`A_Text_baseline.ipynb`](notebooks/A_Text_baseline.ipynb) | Unconditional text baselines (mp-20, alex-mp-20, LeMaterial) and LeMat-bench generation | 
+| [`A_Text_baseline.ipynb`](notebooks/A_Text_baseline.ipynb) | Unconditional text baselines (MP-20, Alex-MP-20, LeMaterial) and LeMat-bench generation | 
 | [`B1a_Pretrain_benefits.ipynb`](notebooks/B1a_Pretrain_benefits.ipynb) | Pretraining benefit: finetuned-from-pretrained vs from-scratch, across all four conditional methods (bandgap + E_hull on MP) |
-| [`B1b_Mattergen.ipynb`](notebooks/B1b_Mattergen.ipynb) | Head-to-head comparison against MatterGen | 
+| [`B1b_Mattergen.ipynb`](notebooks/B1b_Mattergen.ipynb) | Comparison of AR model against MatterGen | 
 | [`B2_Dataset_size_study.ipynb`](notebooks/B2_Dataset_size_study.ipynb) | Dataset-size study on density-conditioned generation |
 | [`X_SLME.ipynb`](notebooks/X_SLME.ipynb) | Discovery pipeline for target photovoltaic efficiency (SLME) |
 | [`X_XRD_chili100k.ipynb`](notebooks/X_XRD_chili100k.ipynb) | CHILI-100K XRD structure recovery and sampling scheme comparison, including generation times |
@@ -521,13 +522,6 @@ The notebooks in [`notebooks/`](notebooks/) reproduce the studies in the paper e
 | [`Y_Logits.ipynb`](notebooks/Y_Logits.ipynb) | Digit-level logit analysis |
 | [`Y_Losses.ipynb`](notebooks/Y_Losses.ipynb) | Loss landscapes (paper appendices) |
 | [`Y_mp-20-xrd-ablations.ipynb`](notebooks/Y_mp-20-xrd-ablations.ipynb) | XRD conditioning and perplexity ranking ablations, including generation times |
-
-# Tokenizer
-
-The `HF-cif-tokenizer` already contains everything you need to train/run models out of the box. However if for some reason a user wishes to add more tokens this can be done by:
-- **Create the new vocab**: Edit the [`_create_vocab.py`](_utils/_tokenizer_utils/_create_vocab.py) file to include all the new tokens you want (if augmenting CIF with new tokens for example). Save a new `vocabulary.json` with the updated dictionary.
-- **Optional: Add Spacegroups**: If new spacegroups are required for a particular study, these should be added to the [`spacegroups.txt`](_utils/_tokenizer_utils/spacegroups.txt) file.
-- **Build New Tokenizer**: Once the new vocabulary is ready, just run the [`_save_tokenizer_to_HF.py`](_utils/_preprocessing/_save_tokenizer_to_HF.py) script, to save it locally or to HF. Then you can update the `pretrained_tokenizer_dir` argument in the train config to point to your new tokenizer!
 
 
 # Citation

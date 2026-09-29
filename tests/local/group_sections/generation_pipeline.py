@@ -8,7 +8,7 @@ class GenerationPipelineTests:
         self.test_data = test_data
     
     def test_generation_script_imports(self):
-        """Test generation script components - comprehensive import check."""
+        """Test generation script imports."""
         from _utils._generating.generate_CIFs import (
             init_tokenizer, setup_device, check_cif, get_model_class,
             build_generation_kwargs, remove_conditionality, parse_condition_vector,
@@ -111,7 +111,7 @@ class GenerationPipelineTests:
             assert key in kwargs, f"{key} should be in generation kwargs"
     
     def test_check_cif_comprehensive(self):
-        """Comprehensive CIF validation tests."""
+        """CIF validation tests."""
         from _utils._generating.generate_CIFs import check_cif
         
         # Test valid CIF structure
@@ -142,7 +142,7 @@ class GenerationPipelineTests:
         assert check_cif(mismatched_cif) is False, "Mismatched formula should fail validation"
     
     def test_condition_vector_parsing_comprehensive(self):
-        """Comprehensive condition vector parsing tests."""
+        """Condition vector parsing tests."""
         from _utils._generating.generate_CIFs import parse_condition_vector
         
         # Test various input formats
